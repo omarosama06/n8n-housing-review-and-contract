@@ -1,0 +1,727 @@
+{
+  "name": "Housing - Review, Apartment Allocation and Contract",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "865bc8b3-cc3e-4a63-86e3-301b1add701b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b1be932-4bd8-4317-9004-77d484d2e423",
+              "name": "fullName",
+              "value": "Ahmed Mohamed Ali",
+              "type": "string"
+            },
+            {
+              "id": "89744b63-bbbe-418c-b03d-1910960bd7e6",
+              "name": "nationalId",
+              "value": "29901011234567",
+              "type": "string"
+            },
+            {
+              "id": "c713fb64-2ace-406d-9760-0d9e7d1e6fff",
+              "name": "birthDate",
+              "value": "1999-01-01",
+              "type": "string"
+            },
+            {
+              "id": "d1afccb7-e91e-44a6-aa2d-49b7bcf1c088",
+              "name": "monthlyIncome",
+              "value": 6000,
+              "type": "number"
+            },
+            {
+              "id": "a27dc9dc-8379-4d0a-9f2d-d01663b2a7dc",
+              "name": "phone",
+              "value": "your number",
+              "type": "string"
+            },
+            {
+              "id": "14f87c6c-920c-4e55-b09b-b2d7d053fc2f",
+              "name": "email",
+              "value": "your email",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "89da38a0-6153-4742-af0f-d1b48d6069b8",
+      "name": "Test Applicant"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "reviewer@example.com",
+        "subject": "=Housing application review: {{ $json.fullName }}",
+        "message": "=     A new application passed automatic screening.\n\n     Name: {{ $json.fullName }}\n     National ID: {{ $json.nationalId }}\n     Birth date: {{ $json.birthDate }}\n     Net monthly income: {{ $json.monthlyIncome }} EGP\n\n     Please approve or reject this application.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "b1fad843-b028-497d-9f3e-fcf256d982fe",
+      "name": "Send message and wait for response",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ae673a79-5cd4-4704-abf1-ebd0663c7e8b",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "8d5fa877-7156-4d64-acee-f017c32d3fd4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Apartments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Available"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        -32
+      ],
+      "id": "854a09ea-2de0-419b-a083-69c7be01ef17",
+      "name": "Find Available Apartment",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "34bb30c2-5b95-49f5-a356-92fba55fa615",
+              "leftValue": "={{ $json.ApartmentID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -32
+      ],
+      "id": "2a8cefe6-a048-45b7-9913-2fd992a8be90",
+      "name": "Apartment available?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        64
+      ],
+      "id": "a7179cc8-4982-4021-bb22-b3022348f48e",
+      "name": "No units left"
+    },
+    {
+      "parameters": {
+        "jsCode": "   const applicant = $('Test Applicant').first().json;\n   const apt = $input.first().json;\n\n   return [{\n     json: {\n       fullName: applicant.fullName,\n       nationalId: applicant.nationalId,\n       phone: applicant.phone,\n       email: applicant.email,\n       apartmentId: apt.ApartmentID,\n       building: apt.Building,\n       city: apt.City,\n       date: new Date().toISOString().slice(0, 10)\n     }\n   }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -128
+      ],
+      "id": "ab31389a-c2c6-41e5-926d-a8731087cd45",
+      "name": "Build Reservation"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Apartments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ApartmentID": "={{ $json.apartmentId }}",
+            "Status": "Reserved",
+            "ReservedFor": "={{ $json.fullName }}",
+            "NationalID": "={{ $json.nationalId }}"
+          },
+          "matchingColumns": [
+            "ApartmentID"
+          ],
+          "schema": [
+            {
+              "id": "ApartmentID",
+              "displayName": "ApartmentID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Building",
+              "displayName": "Building",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ReservedFor",
+              "displayName": "ReservedFor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NationalID",
+              "displayName": "NationalID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -128
+      ],
+      "id": "ffda1589-fca9-49ba-84c5-672baa1dfa57",
+      "name": "Reserve Apartment",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "YOUR_CONTRACT_TEMPLATE_ID",
+          "mode": "list",
+          "cachedResultName": "Contract Template",
+          "cachedResultUrl": "https://docs.google.com/document/d/YOUR_CONTRACT_TEMPLATE_ID"
+        },
+        "name": "=Contract - {{ $('Build Reservation').item.json.fullName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1792,
+        -128
+      ],
+      "id": "326b1cc9-014a-47f0-bdc6-28a8f939cd84",
+      "name": "Copy Template",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{FULL_NAME}}",
+              "replaceText": "={{ $('Build Reservation').item.json.fullName }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{NATIONAL_ID}}",
+              "replaceText": "={{ $('Build Reservation').item.json.nationalId }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{APARTMENT_ID}}",
+              "replaceText": "={{ $('Build Reservation').item.json.apartmentId }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{BUILDING}}",
+              "replaceText": "={{ $('Build Reservation').item.json.building }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{DATE}}",
+              "replaceText": "={{ $('Build Reservation').item.json.date }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        -128
+      ],
+      "id": "5d575b76-14ed-4a3d-a732-c3e3e47ae2d4",
+      "name": "Fill Contract",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Copy Template').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2240,
+        -128
+      ],
+      "id": "cb1ef883-06d7-428f-999c-59c5157a5355",
+      "name": "Download as PDF",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "=Contract - {{ $('Build Reservation').item.json.fullName }}.pdf",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "YOUR_DRIVE_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "Contracts",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/YOUR_DRIVE_FOLDER_ID"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2464,
+        -128
+      ],
+      "id": "0b67301b-be95-4c2b-ae8c-8e05b76960a5",
+      "name": "Upload Contract",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2688,
+        -128
+      ],
+      "id": "91db4275-87a4-40c0-87d0-6b6901ac7a6c",
+      "name": "Share Contract",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "188b6364-9091-4e95-a246-c36c58eee54f",
+              "name": "phone",
+              "value": "={{ $('Build Reservation').item.json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "c161064c-4a4a-4f77-83e9-c1273cae33dc",
+              "name": "apartmentId",
+              "value": "={{ $('Build Reservation').item.json.apartmentId }}",
+              "type": "string"
+            },
+            {
+              "id": "42ec6100-2f02-411a-9ceb-52bb118c9d1f",
+              "name": "building",
+              "value": "={{ $('Build Reservation').item.json.building }}",
+              "type": "string"
+            },
+            {
+              "id": "3dc51969-e7aa-4be9-a2b9-1ea19c2f444b",
+              "name": "contractUrl",
+              "value": "=https://drive.google.com/file/d/{{ $('Upload Contract').item.json.id }}/view",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2912,
+        -128
+      ],
+      "id": "89ce18ee-75a7-45a5-813b-6b848a4b1895",
+      "name": "Final Output"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Test Applicant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Applicant": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Find Available Apartment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Available Apartment": {
+      "main": [
+        [
+          {
+            "node": "Apartment available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apartment available?": {
+      "main": [
+        [
+          {
+            "node": "Build Reservation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No units left",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reservation": {
+      "main": [
+        [
+          {
+            "node": "Reserve Apartment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserve Apartment": {
+      "main": [
+        [
+          {
+            "node": "Copy Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy Template": {
+      "main": [
+        [
+          {
+            "node": "Fill Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill Contract": {
+      "main": [
+        [
+          {
+            "node": "Download as PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download as PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Contract": {
+      "main": [
+        [
+          {
+            "node": "Share Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share Contract": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a2c64914-0ef0-4414-9355-248a4bf731a9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REMOVED"
+  },
+  "nodeGroups": [],
+  "id": "REMOVED",
+  "tags": []
+}
